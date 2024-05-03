@@ -1,0 +1,97 @@
+import lists
+import declassifyutil 
+import stdio
+
+ 
+
+(* The server maintains a database that is represented as a list, where     *)
+(* each entry in the database is a pair of (username, password) for every user. *)
+
+let 
+
+    fun match user1 user2  = let
+            
+            val ((lev1, name1, year1, gender1, interests1), agent1, pid1) = user1
+            val ((lev2, name2, year2, gender2, interests2), agent2, pid2) = user2
+            
+            val ((preference, preference_), (maybeProfile1, maybeProfile2)) = 
+                let pini authority
+                    val (preference, maybeProfile1) = agent1(lev2, name2, year2, gender2, interests2)
+                    val _ = print("!__________---------------------____________________--------------------------")
+                    val _ = print(maybeProfile1)
+
+                    val _ = print("#__________---------------------____________________--------------------------")
+
+                    val (preference_, maybeProfile2) = agent2(lev1, name1, year1, gender1, interests1)
+
+                    val _ = print(maybeProfile2)
+                    val _ = print(preference_)
+
+                    val pref1 = declassify_with_block(preference, authority, `{}`)
+                    val pref2 = declassify_with_block(preference_, authority, `{}`)
+
+                    val msg = if (pref1 andalso pref2) then
+                         ("Match!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+                         else ("No Match------------------")
+
+                    val _ =  if (pref1 andalso pref2)
+                    
+                    then let 
+                        val _ = print msg
+                        
+                        val Profile1 = declassify_with_block(maybeProfile1, authority, `{}`)
+                        val Profile2 = declassify_with_block(maybeProfile2, authority, `{}`)
+                        
+                        val _ = send (pid1, ("NEWMATCH", Profile2))
+                        val _ = send (pid2, ("NEWMATCH", Profile1))
+                        
+
+                      in
+                        print("Matching " ^ name1 ^ " and " ^ name2 ^ " has been successfull.")
+                      end
+                    else let
+                        val _ = print msg                    
+                     in ()
+                    end
+                in
+                    ((preference, preference_), (maybeProfile1, maybeProfile2))
+                end
+
+            in 
+                ()
+        end
+
+    fun isPresent upp l = map (match upp) l
+
+
+    fun server db = 
+        let 
+            val _ = printString "Waiting for new requests"
+
+            val newMsg = 
+                let pini authority
+                    val a = receive [ hn ("NEWPROFILE",  newMsg) => newMsg ]
+                in
+                    a
+                end        
+            val _ = printWithLabels ("I received", newMsg)
+
+            val _ = isPresent newMsg db
+
+        in server (newMsg::db)
+        end
+    
+
+    fun main () =       
+        let val thisNode = node (self ())
+            val _ = printString ("Running node with identifier: " ^ thisNode)
+            val _ =  register ("datingServer", spawn (fn() => server []), authority)
+        in  (* TODO: Feel free to comment out the next line
+                     while you develop your solution and work on a few 
+                     custom clients;  
+            send (whereis ("@dispatcher", "dispatcher"), ("DISPATCH", thisNode)); *)
+            ()
+        end
+in main ()
+end
+

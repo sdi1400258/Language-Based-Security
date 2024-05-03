@@ -1,0 +1,21 @@
+let 
+   val lev = `{bob}`
+   val name = "bob" raisedTo lev
+   val year = 4321 raisedTo lev
+   val gender = false raisedTo lev
+   val interests = ["bars", "ice-skating", "concerts"] raisedTo lev
+
+   fun agent(lev, name, year, gender, interests) =
+      if(gender = true) 
+         then 
+            (true, (lev, name, year, gender, interests)) 
+         else 
+            (false, ())
+
+   val server = whereis ("QmXG1pV4m9UyUDs8b8fw2Tzk7NyAWXZNFFJrjFVPFw59Zc", "datingServer")
+   val _ = send(server, ("NEWPROFILE", ((lev, name, year, gender, interests), agent, self())))
+   
+in 
+   ()
+end
+
